@@ -5,7 +5,7 @@
     "canbus": null
   },
   "invertedIMU": false,
-  "enableTelemetry": false,
+  "enableTelemetry": true,
   "modules": [
     "frontleft.json",
     "frontright.json",

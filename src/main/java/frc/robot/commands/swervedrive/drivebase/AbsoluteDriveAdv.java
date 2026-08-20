@@ -30,6 +30,9 @@ public class AbsoluteDriveAdv extends Command
   private final BooleanSupplier lookAway, lookTowards, lookLeft, lookRight;
   private boolean resetHeading = false;
 
+    double headingX = 0;
+    double headingY = 0;
+
   /**
    * Used to drive a swerve robot in full field-centric mode.  vX and vY supply translation inputs, where x is
    * torwards/away from alliance wall and y is left/right. Heading Adjust changes the current heading after being
@@ -76,8 +79,7 @@ public class AbsoluteDriveAdv extends Command
   @Override
   public void execute()
   {
-    double headingX = 0;
-    double headingY = 0;
+  
 
     // These are written to allow combinations for 45 angles
     // Face Away from Drivers
@@ -102,8 +104,8 @@ public class AbsoluteDriveAdv extends Command
     }
 
     // Prevent Movement After Auto
-    if (resetHeading)
-    {
+   // if (resetHeading)
+  //  {
       if (headingX == 0 && headingY == 0 && Math.abs(headingAdjust.getAsDouble()) == 0)
       {
         // Get the curret Heading
@@ -115,7 +117,7 @@ public class AbsoluteDriveAdv extends Command
       }
       //Dont reset Heading Again
       resetHeading = false;
-    }
+   // }
 
     ChassisSpeeds desiredSpeeds = swerve.getTargetSpeeds(vX.getAsDouble(), vY.getAsDouble(), headingX, headingY);
 
@@ -136,6 +138,13 @@ public class AbsoluteDriveAdv extends Command
     {
       swerve.drive(translation, desiredSpeeds.omegaRadiansPerSecond, true);
     }
+
+    SmartDashboard.putNumber("Heading X", headingX);
+    SmartDashboard.putNumber("Heading Y", headingY);
+    SmartDashboard.putNumber("Heading adjust", headingAdjust.getAsDouble());
+    SmartDashboard.putNumber("goalx", vX.getAsDouble());
+    SmartDashboard.putNumber("goaly", vY.getAsDouble());
+
   }
 
   // Called once the command ends or is interrupted.
