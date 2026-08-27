@@ -39,19 +39,22 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
+ * This class is where the bulk of the robot should be declared. Since
+ * Command-based is a
+ * "declarative" paradigm, very little robot logic should actually be handled in
+ * the {@link Robot}
+ * periodic methods (other than the scheduler calls). Instead, the structure of
+ * the robot (including
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
 
   final CommandXboxController driverController = new CommandXboxController(1);
   final CommandXboxController operatorController = new CommandXboxController(0);
-  
-  private final SwerveSubsystem drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
-                                                                            "swerve"));
-                                                                                
+
+  private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
+      "swerve"));
+
   private final IntakeDeploySubsystem intakeDeploy = new IntakeDeploySubsystem();
   private final IntakeRollersSubsystem intakeRollers = new IntakeRollersSubsystem();
   private final HopperSubsystem hopper = new HopperSubsystem();
@@ -63,14 +66,17 @@ public class RobotContainer {
   // Intake Commands
   Command intakeRollersIntake = new IntakeRollersIntakeCommand(intakeRollers, 0.5);
   Command intakeRollersReverse = new IntakeRollersIntakeCommand(intakeRollers, -0.5);
-  Command intakeRollersFeed = new IntakeRollersFeedCommand(intakeRollers, 0.5); // was .5, probably don't need fast speed?
-  Command intakeRollersMidPass = new IntakeRollersFeedCommand(intakeRollers, 0.5); // was .5, probably don't need fast speed?
-  Command intakeRollersFarPass = new IntakeRollersFeedCommand(intakeRollers, 0.5); // was .5, probably don't need fast speed?
+  Command intakeRollersFeed = new IntakeRollersFeedCommand(intakeRollers, 0.5); // was .5, probably don't need fast
+                                                                                // speed?
+  Command intakeRollersMidPass = new IntakeRollersFeedCommand(intakeRollers, 0.5); // was .5, probably don't need fast
+                                                                                   // speed?
+  Command intakeRollersFarPass = new IntakeRollersFeedCommand(intakeRollers, 0.5); // was .5, probably don't need fast
+                                                                                   // speed?
   Command intakeRollersStill = new IntakeRollersIntakeCommand(intakeRollers, 0.0);
   Command intakeExtend = new IntakeExtendCommand(intakeDeploy);
   Command intakeRetract = new IntakeRetractCommand(intakeDeploy);
-  // Command intakeLaunchRetract = new IntakeRetractCommand(intakeDeploy); 
-  // Command intakePassRetract = new IntakeRetractCommand(intakeDeploy); 
+  // Command intakeLaunchRetract = new IntakeRetractCommand(intakeDeploy);
+  // Command intakePassRetract = new IntakeRetractCommand(intakeDeploy);
   // Command intakeLaunchRetractDelay = new WaitCommand(0.5);
   // Command intakePassRetractDelay = new WaitCommand(0.5);
   Command intakeRollersIntakeAuto = new IntakeRollersIntakeCommand(intakeRollers, 0.5);
@@ -88,7 +94,7 @@ public class RobotContainer {
   Command hopperStillAuto = new HopperRollersStillCommand(hopper);
 
   // Feeder Commands
-  Command feederFeed = new FeederCommand(feeder,0.6);
+  Command feederFeed = new FeederCommand(feeder, 0.6);
   Command feederMidPass = new FeederCommand(feeder, 0.6); // passing related, if we need
   Command feederFarPass = new FeederCommand(feeder, 0.6); // passing related, if we need
   Command feederStill = new FeederCommand(feeder, 0.0);
@@ -100,43 +106,48 @@ public class RobotContainer {
 
   // Launcher Commands
   Command launcherLaunch = new LauncherCommand(launcher, 0.48);
-  Command launcherMidPass = new LauncherCommand(launcher, 0.7); // Maybe we can see what a higher velocity shot looks like for passing?
-  Command launcherFarPass = new LauncherCommand(launcher, 0.9); // Maybe we can see what a higher velocity shot looks like for passing?
+  Command launcherMidPass = new LauncherCommand(launcher, 0.7); // Maybe we can see what a higher velocity shot looks
+                                                                // like for passing?
+  Command launcherFarPass = new LauncherCommand(launcher, 0.9); // Maybe we can see what a higher velocity shot looks
+                                                                // like for passing?
   Command launcherStill = new LauncherCommand(launcher, 0.0);
   Command launcherLaunchAuto = new LauncherCommand(launcher, 0.5);
   Command launcherStillAuto = new LauncherCommand(launcher, 0.0);
 
-  //Swerve Commands
+  // Swerve Commands
 
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                                                                () -> driverController.getLeftY(),
-                                                                () -> driverController.getLeftX())
-                                                            .withControllerRotationAxis(driverController::getRightX)
-                                                            .deadband(OperatorConstants.DEADBAND)
-                                                            .scaleTranslation(0.8)
-                                                            .allianceRelativeControl(false);
+      () -> driverController.getLeftY(),
+      () -> driverController.getLeftX())
+      .withControllerRotationAxis(driverController::getRightX)
+      .deadband(OperatorConstants.DEADBAND)
+      .scaleTranslation(0.8)
+      .allianceRelativeControl(false);
 
-  SwerveInputStream driveDirectAngle = driveAngularVelocity.copy().withControllerHeadingAxis(driverController::getRightX,
-                                                                                             driverController::getRightY)
-                                                           .headingWhile(true);
+  SwerveInputStream driveDirectAngle = driveAngularVelocity.copy()
+      .withControllerHeadingAxis(driverController::getRightX,
+          driverController::getRightY)
+      .headingWhile(true);
 
   Command driveFieldOrientedDirectAngle = drivebase.driveFieldOriented(driveDirectAngle);
   Command driveFieldOrientedAngularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
   Command driveWithHeadingSnaps = new AbsoluteDriveAdv(drivebase,
-                                              () -> -MathUtil.applyDeadband(driverController.getLeftY(),
-                                                                          OperatorConstants.DEADBAND),
-                                              () -> -MathUtil.applyDeadband(driverController.getLeftX(),
-                                                                          OperatorConstants.DEADBAND),
-                                              () -> MathUtil.applyDeadband(driverController.getRightX(),
-                                                                          OperatorConstants.RIGHT_X_DEADBAND),
-                                              driverController.getHID()::getYButtonPressed,
-                                              driverController.getHID()::getAButtonPressed,
-                                              driverController.getHID()::getXButtonPressed,
-                                              driverController.getHID()::getBButtonPressed);
+      () -> -MathUtil.applyDeadband(driverController.getLeftY(),
+          OperatorConstants.DEADBAND),
+      () -> -MathUtil.applyDeadband(driverController.getLeftX(),
+          OperatorConstants.DEADBAND),
+      () -> MathUtil.applyDeadband(driverController.getRightX(),
+          OperatorConstants.RIGHT_X_DEADBAND),
+      driverController.getHID()::getYButtonPressed,
+      driverController.getHID()::getAButtonPressed,
+      driverController.getHID()::getXButtonPressed,
+      driverController.getHID()::getBButtonPressed);
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  /**
+   * The container for the robot. Contains subsystems, OI devices, and commands.
+   */
   public RobotContainer() {
-   
+
     // PathPlanner Commands
     NamedCommands.registerCommand("intakeDeployAuto", intakeExtendAuto);
     NamedCommands.registerCommand("intakeRetractAuto", intakeRetractAuto);
@@ -154,13 +165,13 @@ public class RobotContainer {
     autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Chooser", autoChooser);
 
-     // Configure the trigger bindings
+    // Configure the trigger bindings
     configureBindings();
 
     // Set default commands for subsystems
-     drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
+    drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
     // drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
-    //drivebase.setDefaultCommand(driveWithHeadingSnaps);
+    // drivebase.setDefaultCommand(driveWithHeadingSnaps);
     intakeRollers.setDefaultCommand(intakeRollersStill);
     hopper.setDefaultCommand(hopperStill);
     feeder.setDefaultCommand(feederStill);
@@ -168,19 +179,29 @@ public class RobotContainer {
   }
 
   /**
-   * Use this method to define your trigger->command mappings. Triggers can be created via the
-   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
+   * Use this method to define your trigger->command mappings. Triggers can be
+   * created via the
+   * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with
+   * an arbitrary
    * predicate, or via the named factories in {@link
-   * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for {@link
-   * CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
-   * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
+   * edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
+   * {@link
+   * CommandXboxController
+   * Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller
+   * PS4} controllers or
+   * {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
    * joysticks}.
    */
   private void configureBindings() {
     // Driver bindings
-    driverController.leftBumper().onTrue(new InstantCommand(drivebase :: zeroGyro));
+    driverController.leftBumper().onTrue(new InstantCommand(drivebase::zeroGyro));
     driverController.rightBumper().whileTrue(drivebase.run(drivebase::lock));
-    new Trigger(driverController.a()).onTrue(driveWithHeadingSnaps);
+
+    // TODO add back to test if heading snaps are desired
+    // new Trigger(driverController.a()).onTrue(driveWithHeadingSnaps);
+    // new Trigger(driverController.b()).onTrue(driveWithHeadingSnaps);
+    // new Trigger(driverController.x()).onTrue(driveWithHeadingSnaps);
+    // new Trigger(driverController.y()).onTrue(driveWithHeadingSnaps);
 
     // Operator bindings
     operatorController.rightBumper().onTrue(intakeExtend);
@@ -190,19 +211,19 @@ public class RobotContainer {
 
     // When A is held: run launcher, and in parallel run a sequence that waits
     operatorController.a().whileTrue(launcherLaunch
-                                      .alongWith(drivebase.run(drivebase::lock))
-                                      .alongWith(feedDelay.andThen(feederFeed
-                                                            .alongWith(hopperFeed)
-                                                            .alongWith(intakeRollersFeed))));
-    
+        .alongWith(drivebase.run(drivebase::lock))
+        .alongWith(feedDelay.andThen(feederFeed
+            .alongWith(hopperFeed)
+            .alongWith(intakeRollersFeed))));
+
     operatorController.b().whileTrue(launcherMidPass
-                                      .alongWith(midPassDelay.andThen(feederMidPass
-                                                            .alongWith(hopperMidPass)
-                                                            .alongWith(intakeRollersMidPass))));
+        .alongWith(midPassDelay.andThen(feederMidPass
+            .alongWith(hopperMidPass)
+            .alongWith(intakeRollersMidPass))));
     operatorController.y().whileTrue(launcherFarPass
-                                      .alongWith(farPassDelay.andThen(feederFarPass
-                                                            .alongWith(hopperFarPass)
-                                                            .alongWith(intakeRollersFarPass))));
+        .alongWith(farPassDelay.andThen(feederFarPass
+            .alongWith(hopperFarPass)
+            .alongWith(intakeRollersFarPass))));
   }
 
   /**

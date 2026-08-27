@@ -89,10 +89,6 @@ public class AbsoluteDriveAdv extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if(MathUtil.applyDeadband(headingAdjust.getAsDouble(),0.1)!=0){
-      end(true);
-    }
-
     // These are written to allow combinations for 45 angles
     // Face Away from Drivers
     if (lookAway.getAsBoolean()) {
@@ -111,51 +107,25 @@ public class AbsoluteDriveAdv extends Command {
       headingY = -1;
     }
 
-    // Prevent Movement After Auto
-    // if (resetHeading)
-    // {
-    if (headingX == 0 && headingY == 0 && Math.abs(headingAdjust.getAsDouble()) == 0) {
-      // Get the curret Heading
-      Rotation2d currentHeading = swerve.getHeading();
-
-      // Set the Current Heading to the desired Heading
-      headingX = currentHeading.getSin();
-      headingY = currentHeading.getCos();
-    }
     // Dont reset Heading Again
     resetHeading = false;
     // }
 
     // Make the robot move
-    if (headingX == 0 && headingY == 0) {
-      resetHeading = true;
-      desiredSpeeds = swerve.getTargetSpeeds(vX.getAsDouble(), vY.getAsDouble(), new Rotation2d(headingAdjust.getAsDouble()));
+    desiredSpeeds = swerve.getTargetSpeeds(vX.getAsDouble(), vY.getAsDouble(), headingX, headingY);
 
-      // Limit velocity to prevent tippy
-      Translation2d translation = SwerveController.getTranslation2d(desiredSpeeds);
-      translation = SwerveMath.limitVelocity(translation, swerve.getFieldVelocity(), swerve.getPose(),
-          Constants.LOOP_TIME, Constants.ROBOT_MASS, List.of(Constants.CHASSIS),
-          swerve.getSwerveDriveConfiguration());
-      SmartDashboard.putNumber("LimitedTranslation", translation.getX());
-      SmartDashboard.putString("Translation", translation.toString());
+    // Limit velocity to prevent tippy
+    Translation2d translation = SwerveController.getTranslation2d(desiredSpeeds);
+    translation = SwerveMath.limitVelocity(translation, swerve.getFieldVelocity(), swerve.getPose(),
+        Constants.LOOP_TIME, Constants.ROBOT_MASS, List.of(Constants.CHASSIS),
+        swerve.getSwerveDriveConfiguration());
+    SmartDashboard.putNumber("LimitedTranslation", translation.getX());
+    SmartDashboard.putString("Translation", translation.toString());
 
-      swerve.drive(translation, (Constants.OperatorConstants.TURN_CONSTANT * -headingAdjust.getAsDouble()), true);
+    swerve.drive(translation, desiredSpeeds.omegaRadiansPerSecond, true);
 
-    } else {
-
-      desiredSpeeds = swerve.getTargetSpeeds(vX.getAsDouble(), vY.getAsDouble(), headingX, headingY);
-
-      // Limit velocity to prevent tippy
-      Translation2d translation = SwerveController.getTranslation2d(desiredSpeeds);
-      translation = SwerveMath.limitVelocity(translation, swerve.getFieldVelocity(), swerve.getPose(),
-          Constants.LOOP_TIME, Constants.ROBOT_MASS, List.of(Constants.CHASSIS),
-          swerve.getSwerveDriveConfiguration());
-      SmartDashboard.putNumber("LimitedTranslation", translation.getX());
-      SmartDashboard.putString("Translation", translation.toString());
-
-      swerve.drive(translation, desiredSpeeds.omegaRadiansPerSecond, true);
-    }
-
+    //Data logging
+    SmartDashboard.putBoolean("Using Drive with Snaps", true);
     SmartDashboard.putNumber("Heading X", headingX);
     SmartDashboard.putNumber("Heading Y", headingY);
     SmartDashboard.putNumber("Heading adjust", headingAdjust.getAsDouble());
@@ -172,7 +142,8 @@ public class AbsoluteDriveAdv extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    SmartDashboard.putBoolean("Using Drive with Snaps", false);
+    return MathUtil.applyDeadband(headingAdjust.getAsDouble(), 0.1) != 0;
   }
 
 }
