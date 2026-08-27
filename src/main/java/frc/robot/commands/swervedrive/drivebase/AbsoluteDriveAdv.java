@@ -4,6 +4,7 @@
 
 package frc.robot.commands.swervedrive.drivebase;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -19,44 +20,55 @@ import swervelib.SwerveController;
 import swervelib.math.SwerveMath;
 
 /**
- * A more advanced Swerve Control System that has 4 buttons for which direction to face
+ * A more advanced Swerve Control System that has 4 buttons for which direction
+ * to face
  */
-public class AbsoluteDriveAdv extends Command
-{
+public class AbsoluteDriveAdv extends Command {
 
   private final SwerveSubsystem swerve;
-  private final DoubleSupplier  vX, vY;
-  private final DoubleSupplier  headingAdjust;
+  private final DoubleSupplier vX, vY;
+  private final DoubleSupplier headingAdjust;
   private final BooleanSupplier lookAway, lookTowards, lookLeft, lookRight;
   private boolean resetHeading = false;
+  private ChassisSpeeds desiredSpeeds = new ChassisSpeeds(0, 0, 0);
 
-    double headingX = 0;
-    double headingY = 0;
+  double headingX = 0;
+  double headingY = 0;
 
   /**
-   * Used to drive a swerve robot in full field-centric mode.  vX and vY supply translation inputs, where x is
-   * torwards/away from alliance wall and y is left/right. Heading Adjust changes the current heading after being
-   * multipied by a constant. The look booleans are shortcuts to get the robot to face a certian direction. Based off of
-   * ideas in https://www.chiefdelphi.com/t/experiments-with-a-swerve-steering-knob/446172
+   * Used to drive a swerve robot in full field-centric mode. vX and vY supply
+   * translation inputs, where x is
+   * torwards/away from alliance wall and y is left/right. Heading Adjust changes
+   * the current heading after being
+   * multipied by a constant. The look booleans are shortcuts to get the robot to
+   * face a certian direction. Based off of
+   * ideas in
+   * https://www.chiefdelphi.com/t/experiments-with-a-swerve-steering-knob/446172
    *
    * @param swerve        The swerve drivebase subsystem.
-   * @param vX            DoubleSupplier that supplies the x-translation joystick input.  Should be in the range -1 to 1
-   *                      with deadband already accounted for.  Positive X is away from the alliance wall.
-   * @param vY            DoubleSupplier that supplies the y-translation joystick input.  Should be in the range -1 to 1
-   *                      with deadband already accounted for.  Positive Y is towards the left wall when looking through
+   * @param vX            DoubleSupplier that supplies the x-translation joystick
+   *                      input. Should be in the range -1 to 1
+   *                      with deadband already accounted for. Positive X is away
+   *                      from the alliance wall.
+   * @param vY            DoubleSupplier that supplies the y-translation joystick
+   *                      input. Should be in the range -1 to 1
+   *                      with deadband already accounted for. Positive Y is
+   *                      towards the left wall when looking through
    *                      the driver station glass.
-   * @param headingAdjust DoubleSupplier that supplies the component of the robot's heading angle that should be
-   *                      adjusted. Should range from -1 to 1 with deadband already accounted for.
-   * @param lookAway      Face the robot towards the opposing alliance's wall in the same direction the driver is
+   * @param headingAdjust DoubleSupplier that supplies the component of the
+   *                      robot's heading angle that should be
+   *                      adjusted. Should range from -1 to 1 with deadband
+   *                      already accounted for.
+   * @param lookAway      Face the robot towards the opposing alliance's wall in
+   *                      the same direction the driver is
    *                      facing
    * @param lookTowards   Face the robot towards the driver
    * @param lookLeft      Face the robot left
    * @param lookRight     Face the robot right
    */
   public AbsoluteDriveAdv(SwerveSubsystem swerve, DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier headingAdjust,
-                          BooleanSupplier lookAway, BooleanSupplier lookTowards, BooleanSupplier lookLeft,
-                          BooleanSupplier lookRight)
-  {
+      BooleanSupplier lookAway, BooleanSupplier lookTowards, BooleanSupplier lookLeft,
+      BooleanSupplier lookRight) {
     this.swerve = swerve;
     this.vX = vX;
     this.vY = vY;
@@ -70,72 +82,77 @@ public class AbsoluteDriveAdv extends Command
   }
 
   @Override
-  public void initialize()
-  {
+  public void initialize() {
     resetHeading = true;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute()
-  {
-  
+  public void execute() {
+    if(MathUtil.applyDeadband(headingAdjust.getAsDouble(),0.1)!=0){
+      end(true);
+    }
 
     // These are written to allow combinations for 45 angles
     // Face Away from Drivers
-    if (lookAway.getAsBoolean())
-    {
+    if (lookAway.getAsBoolean()) {
       headingY = 1;
     }
     // Face Right
-    if (lookRight.getAsBoolean())
-    {
+    if (lookRight.getAsBoolean()) {
       headingX = -1;
     }
     // Face Left
-    if (lookLeft.getAsBoolean())
-    {
+    if (lookLeft.getAsBoolean()) {
       headingX = 1;
     }
     // Face Towards the Drivers
-    if (lookTowards.getAsBoolean())
-    {
+    if (lookTowards.getAsBoolean()) {
       headingY = -1;
     }
 
     // Prevent Movement After Auto
-   // if (resetHeading)
-  //  {
-      if (headingX == 0 && headingY == 0 && Math.abs(headingAdjust.getAsDouble()) == 0)
-      {
-        // Get the curret Heading
-        Rotation2d currentHeading = swerve.getHeading();
+    // if (resetHeading)
+    // {
+    if (headingX == 0 && headingY == 0 && Math.abs(headingAdjust.getAsDouble()) == 0) {
+      // Get the curret Heading
+      Rotation2d currentHeading = swerve.getHeading();
 
-        // Set the Current Heading to the desired Heading
-        headingX = currentHeading.getSin();
-        headingY = currentHeading.getCos();
-      }
-      //Dont reset Heading Again
-      resetHeading = false;
-   // }
-
-    ChassisSpeeds desiredSpeeds = swerve.getTargetSpeeds(vX.getAsDouble(), vY.getAsDouble(), headingX, headingY);
-
-    // Limit velocity to prevent tippy
-    Translation2d translation = SwerveController.getTranslation2d(desiredSpeeds);
-    translation = SwerveMath.limitVelocity(translation, swerve.getFieldVelocity(), swerve.getPose(),
-                                           Constants.LOOP_TIME, Constants.ROBOT_MASS, List.of(Constants.CHASSIS),
-                                           swerve.getSwerveDriveConfiguration());
-    SmartDashboard.putNumber("LimitedTranslation", translation.getX());
-    SmartDashboard.putString("Translation", translation.toString());
+      // Set the Current Heading to the desired Heading
+      headingX = currentHeading.getSin();
+      headingY = currentHeading.getCos();
+    }
+    // Dont reset Heading Again
+    resetHeading = false;
+    // }
 
     // Make the robot move
-    if (headingX == 0 && headingY == 0 && Math.abs(headingAdjust.getAsDouble()) > 0)
-    {
+    if (headingX == 0 && headingY == 0) {
       resetHeading = true;
+      desiredSpeeds = swerve.getTargetSpeeds(vX.getAsDouble(), vY.getAsDouble(), new Rotation2d(headingAdjust.getAsDouble()));
+
+      // Limit velocity to prevent tippy
+      Translation2d translation = SwerveController.getTranslation2d(desiredSpeeds);
+      translation = SwerveMath.limitVelocity(translation, swerve.getFieldVelocity(), swerve.getPose(),
+          Constants.LOOP_TIME, Constants.ROBOT_MASS, List.of(Constants.CHASSIS),
+          swerve.getSwerveDriveConfiguration());
+      SmartDashboard.putNumber("LimitedTranslation", translation.getX());
+      SmartDashboard.putString("Translation", translation.toString());
+
       swerve.drive(translation, (Constants.OperatorConstants.TURN_CONSTANT * -headingAdjust.getAsDouble()), true);
-    } else
-    {
+
+    } else {
+
+      desiredSpeeds = swerve.getTargetSpeeds(vX.getAsDouble(), vY.getAsDouble(), headingX, headingY);
+
+      // Limit velocity to prevent tippy
+      Translation2d translation = SwerveController.getTranslation2d(desiredSpeeds);
+      translation = SwerveMath.limitVelocity(translation, swerve.getFieldVelocity(), swerve.getPose(),
+          Constants.LOOP_TIME, Constants.ROBOT_MASS, List.of(Constants.CHASSIS),
+          swerve.getSwerveDriveConfiguration());
+      SmartDashboard.putNumber("LimitedTranslation", translation.getX());
+      SmartDashboard.putString("Translation", translation.toString());
+
       swerve.drive(translation, desiredSpeeds.omegaRadiansPerSecond, true);
     }
 
@@ -149,16 +166,13 @@ public class AbsoluteDriveAdv extends Command
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted)
-  {
+  public void end(boolean interrupted) {
   }
 
   // Returns true when the command should end.
   @Override
-  public boolean isFinished()
-  {
+  public boolean isFinished() {
     return false;
   }
-
 
 }

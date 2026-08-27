@@ -158,9 +158,9 @@ public class RobotContainer {
     configureBindings();
 
     // Set default commands for subsystems
-    // drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
+     drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
     // drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
-    drivebase.setDefaultCommand(driveWithHeadingSnaps);
+    //drivebase.setDefaultCommand(driveWithHeadingSnaps);
     intakeRollers.setDefaultCommand(intakeRollersStill);
     hopper.setDefaultCommand(hopperStill);
     feeder.setDefaultCommand(feederStill);
@@ -180,6 +180,7 @@ public class RobotContainer {
     // Driver bindings
     driverController.leftBumper().onTrue(new InstantCommand(drivebase :: zeroGyro));
     driverController.rightBumper().whileTrue(drivebase.run(drivebase::lock));
+    new Trigger(driverController.a()).onTrue(driveWithHeadingSnaps);
 
     // Operator bindings
     operatorController.rightBumper().onTrue(intakeExtend);
